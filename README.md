@@ -18,9 +18,10 @@ MyCart is a Django-based shopping project with a storefront, cart flow, checkout
 - Python
 - Django
 - Pillow for uploaded product images
-- SQLite (default database)
+- SQLite locally and PostgreSQL on Render
 - Bootstrap for frontend styling
 - ReportLab for PDF generation
+- WhiteNoise for production static files
 
 ## Project Structure
 
@@ -41,6 +42,7 @@ mc/
 │   └── templates/
 ├── manage.py
 ├── requirements.txt
+├── render.yaml
 ├── .gitignore
 ├── README.md
 └── media/ (local uploads; ignored by Git)
@@ -48,7 +50,7 @@ mc/
 
 ## Requirements
 
-- Python 3.12 or newer
+- Python 3.10 or newer
 - Dependencies listed in `requirements.txt`
 
 ## Setup
@@ -122,8 +124,20 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
+## Render Demo Deployment
+
+The repository includes a Render Blueprint in `render.yaml`. To create a demo deployment:
+
+1. Push the repository to GitHub.
+2. In Render, create a new Blueprint and connect `x-Om-x/MyCart`.
+3. Review the web service and PostgreSQL database, then apply the Blueprint.
+
+The Blueprint generates `DJANGO_SECRET_KEY`, configures PostgreSQL, runs migrations and collects static files during build, and starts the app with Gunicorn. Render sets the public hostname automatically.
+
+This is for demonstration and testing only. Render's free web service can spin down when idle, and its free PostgreSQL database expires after 30 days. The app's uploaded product images are stored on the web service's temporary filesystem and can be lost on restart or redeploy. Do not use this configuration for real orders or important data. For production, use a persistent paid database and external persistent media storage, and confirm backups and retention.
+
 ## Notes
 
 - Media uploads are stored under the `media/` directory.
-- The project uses SQLite as the default database for local development.
+- The project uses SQLite locally; Render uses PostgreSQL through `DATABASE_URL`.
 - Local database files, uploads, virtual environments, and secrets are excluded via `.gitignore`.
