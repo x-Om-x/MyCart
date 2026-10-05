@@ -1,0 +1,30 @@
+{% extends 'shop/basic.html' %}
+
+{% block title %}Order Confirmed{% endblock %}
+
+{% block body %}
+<main class="container my-5">
+  <div class="mx-auto" style="max-width: 680px;">
+    <h1 class="h2">Order placed</h1>
+    <p class="text-body-secondary">Order #{{ order.order_id }} has been recorded.</p>
+
+    <dl class="row border-top border-bottom py-3">
+      <dt class="col-sm-5">Order total</dt>
+      <dd class="col-sm-7">INR {{ order.amount }}</dd>
+      <dt class="col-sm-5">Payment status</dt>
+      <dd class="col-sm-7">Pending</dd>
+      <dt class="col-sm-5">Payment method</dt>
+      <dd class="col-sm-7">Manual/offline payment</dd>
+    </dl>
+
+    <a class="btn btn-primary" href="{% url 'OrderInvoice' pdf_token %}">Download payment invoice (PDF)</a>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'ShopHome' %}">Continue shopping</a>
+  </div>
+</main>
+{% endblock %}
+
+{% block js %}
+<script>
+  localStorage.removeItem('cart');
+</script>
+{% endblock %}

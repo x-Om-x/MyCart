@@ -1,0 +1,14 @@
+{% extends 'shop/basic.html' %}
+
+{% block title %}About MyCart{% endblock %}
+
+{% block body %}
+<main class="container my-5">
+    <div class="bg-body-tertiary p-5 rounded">
+        <h1>About MyCart</h1>
+        <p class="lead">MyCart is a simple online shopping experience built to make everyday purchases easier, faster, and more convenient.</p>
+        <p>We focus on straightforward browsing, secure checkout flows, and clean product discovery so customers can quickly find what they need and complete their order without friction.</p>
+        <a class="btn btn-lg btn-primary" href="{% url 'ShopHome' %}" role="button">Browse products &raquo;</a>
+    </div>
+</main>
+{% endblock %}

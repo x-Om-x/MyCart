@@ -1,0 +1,263 @@
+{% extends 'shop/basic.html' %}
+
+{% block title %} MyCart Tracker - Track your orders {% endblock %}
+
+{% block body %}
+
+<div class="container">
+  <div class="col my-3">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-1">📦 MyCart Tracker</h2>
+        <p class="text-muted mb-4">Enter your Order ID and Email address to track your order</p>
+
+        <form class="row g-3 needs-validation" novalidate method="post" action="/shop/tracker/" id="tracker_form">
+          {% csrf_token %}
+
+          <div class="col-md-5">
+            <label for="order_id" class="form-label">Order ID</label>
+            <input type="text" class="form-control form-control-lg" id="order_id" name="order_id" required>
+            <div class="valid-feedback">Looks good!</div>
+          </div>
+
+          <div class="col-md-5">
+            <label for="email" class="form-label">Email</label>
+            <div class="input-group has-validation">
+              <span class="input-group-text" id="inputGroupPrepend">@</span>
+              <input type="email" class="form-control form-control-lg" id="email" name="email"
+                aria-describedby="inputGroupPrepend" required>
+              <div class="invalid-feedback">Please choose a valid email.</div>
+            </div>
+          </div>
+
+          <div class="col-md-2 d-flex align-items-start pt-md-4">
+            <button class="btn btn-primary btn-lg w-100 mt-1" type="submit" id="track_btn">
+              <span id="track_btn_text">Track Order</span>
+              <span id="track_spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"
+                aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col my-3">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Order Status</h2>
+
+        <div id="status_placeholder" class="text-center text-muted py-5">
+          <i class="bi bi-box-seam" style="font-size: 2.5rem;"></i>
+          <p class="mt-2 mb-0">Track an order to see its status here</p>
+        </div>
+
+        <div id="status_error" class="alert alert-danger d-none" role="alert"></div>
+
+        <ul class="list-unstyled order-timeline d-none" id="status_timeline"></ul>
+      </div>
+    </div>
+  </div>
+  <div class="col my-3">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Order Details</h2>
+
+        <div id="details_placeholder" class="text-center text-muted py-5">
+          <i class="bi bi-box-seam" style="font-size: 2.5rem;"></i>
+          <p class="mt-2 mb-0">Track an order to see its details here</p>
+        </div>
+
+        <div id="order_details" class="d-none">
+          <p class="mb-3"><strong>Order ID:</strong> <span id="details_order_id"></span></p>
+          <h3 class="h6">Items</h3>
+          <ul class="list-group" id="details_items"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  
+  
+  .order-timeline {
+    position: relative;
+    padding-left: 2.5rem;
+    margin-bottom: 0;
+  }
+
+  .order-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.65rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background-color: #dee2e6;
+  }
+
+  .order-timeline .timeline-item {
+    position: relative;
+    padding-bottom: 1.75rem;
+  }
+
+  .order-timeline .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .order-timeline .timeline-dot {
+    position: absolute;
+    left: -2.5rem;
+    top: 0.15rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 2px #0d6efd;
+  }
+
+  .order-timeline .timeline-item:first-child .timeline-dot {
+    background-color: #198754;
+    box-shadow: 0 0 0 2px #198754;
+  }
+
+  .order-timeline .timeline-text {
+    font-weight: 500;
+  }
+
+  .order-timeline .timeline-time {
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block js %}
+<script>
+  const form = document.getElementById('tracker_form');
+  const trackBtn = document.getElementById('track_btn');
+  const trackBtnText = document.getElementById('track_btn_text');
+  const trackSpinner = document.getElementById('track_spinner');
+  const statusPlaceholder = document.getElementById('status_placeholder');
+  const statusError = document.getElementById('status_error');
+  const statusTimeline = document.getElementById('status_timeline');
+  const detailsPlaceholder = document.getElementById('details_placeholder');
+  const orderDetails = document.getElementById('order_details');
+  const detailsOrderId = document.getElementById('details_order_id');
+  const detailsItems = document.getElementById('details_items');
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+    form.classList.add('was-validated');
+
+    const orderId = document.getElementById('order_id').value;
+    const email = document.getElementById('email').value;
+
+    const formData = new FormData();
+    formData.append('order_id', orderId);
+    formData.append('email', email);
+
+    // Loading state
+    trackBtn.disabled = true;
+    trackBtnText.textContent = 'Tracking...';
+    trackSpinner.classList.remove('d-none');
+    statusError.classList.add('d-none');
+    orderDetails.classList.add('d-none');
+    detailsPlaceholder.classList.remove('d-none');
+
+    fetch('/shop/tracker/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Unable to track this order.');
+        }
+        return data;
+      })
+      .then(data => {
+        statusPlaceholder.classList.add('d-none');
+        statusError.classList.add('d-none');
+        statusTimeline.innerHTML = '';
+        detailsItems.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length < 2) {
+          throw new Error('The order response was invalid.');
+        }
+
+        const updates = Array.isArray(data[0]) ? data[0] : [];
+        const sorted = [...updates].sort((a, b) => new Date(b.time) - new Date(a.time));
+
+        sorted.forEach(update => {
+          const li = document.createElement('li');
+          li.className = 'timeline-item';
+          const text = document.createElement('div');
+          text.className = 'timeline-text';
+          text.textContent = update.text;
+          const time = document.createElement('div');
+          time.className = 'timeline-time text-muted';
+          time.textContent = new Date(update.time).toLocaleString();
+          const dot = document.createElement('span');
+          dot.className = 'timeline-dot';
+          li.append(dot, text, time);
+          statusTimeline.appendChild(li);
+        });
+
+        if (sorted.length) {
+          statusTimeline.classList.remove('d-none');
+        } else {
+          statusError.textContent = 'No status updates found for this order.';
+          statusError.classList.remove('d-none');
+        }
+
+        const items = typeof data[1] === 'string' ? JSON.parse(data[1]) : data[1];
+        detailsOrderId.textContent = orderId;
+        Object.entries(items || {}).forEach(([productId, item]) => {
+          const row = document.createElement('li');
+          row.className = 'list-group-item d-flex justify-content-between align-items-center';
+          const name = document.createElement('span');
+          name.textContent = Array.isArray(item) ? (item[1] || `Product ${productId}`) : `Product ${productId}`;
+          const quantity = document.createElement('span');
+          quantity.className = 'badge text-bg-primary rounded-pill';
+          quantity.textContent = `Qty: ${Array.isArray(item) ? item[0] : item}`;
+          row.append(name, quantity);
+          detailsItems.appendChild(row);
+        });
+
+        if (!detailsItems.childElementCount) {
+          const emptyRow = document.createElement('li');
+          emptyRow.className = 'list-group-item text-muted';
+          emptyRow.textContent = 'No item details were saved for this order.';
+          detailsItems.appendChild(emptyRow);
+        }
+        detailsPlaceholder.classList.add('d-none');
+        orderDetails.classList.remove('d-none');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        statusPlaceholder.classList.add('d-none');
+        statusTimeline.classList.add('d-none');
+        detailsPlaceholder.classList.add('d-none');
+        orderDetails.classList.add('d-none');
+        statusError.textContent = error.message || 'Something went wrong while tracking your order.';
+        statusError.classList.remove('d-none');
+      })
+      .finally(() => {
+        trackBtn.disabled = false;
+        trackBtnText.textContent = 'Track Order';
+        trackSpinner.classList.add('d-none');
+      });
+  });
+</script>
+{% endblock %}

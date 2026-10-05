@@ -1,0 +1,80 @@
+{% extends 'shop/basic.html' %}
+
+{% block title %} {{ product.product_name }} {% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row align-items-center shadow-sm border rounded overflow-hidden bg-white">
+        <div class="col-md-5 p-4">
+            <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.product_name }}">
+        </div>
+
+        <div class="col-md-7 p-4">
+            <p class="text-muted mb-2">Featured Product</p>
+            <h1 class="display-6 fw-bold mb-3">{{ product.product_name }}</h1>
+
+            <div class="d-flex align-items-center mb-3">
+                <h3 class="text-primary mb-0">Rs. {{ product.price }}</h3>
+            </div>
+
+            <p class="lead text-secondary">{{ product.desc }}</p>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary btn-lg px-4">Buy Now</button>
+                <button type="button" id="pr{{ product.id }}" data-price="{{product.price}}" class="btn btn-outline-dark btn-lg px-4 cart">Add to Cart</button>
+            </div>
+
+            <div class="mt-4">
+                <span class="badge bg-light text-dark border">Free Delivery</span>
+                <span class="badge bg-light text-dark border ms-2">7 Days Return</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{%block js %} 
+<script>
+  var cart = {};
+  if (localStorage.getItem('cart') !== null) {
+    cart = JSON.parse(localStorage.getItem('cart'));
+  }
+  var cartCount = document.getElementById('cart');
+  if (cartCount) {
+    cartCount.innerHTML = Object.values(cart)
+      .reduce((total, item) => total + item[0], 0);
+  }
+
+  $(document).on('click', '.cart', function (e) {
+    e.preventDefault();
+    var idstr = this.id.toString();
+    var productName = "{{ product.product_name|escapejs }}";
+    var productPrice = Number(this.dataset.price);
+
+    if (cart[idstr] !== undefined) {
+      cart[idstr][0] = cart[idstr][0] + 1;
+      cart[idstr][2] = productPrice;
+    } else {
+      cart[idstr] = [1, productName, productPrice];
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    if (cartCount) {
+      cartCount.innerHTML = Object.values(cart)
+        .reduce((total, item) => total + item[0], 0);
+    }
+  });
+
+  $(document).ready(function () {
+    var popcart = document.getElementById('popcart');
+    if (popcart) {
+      $('#popcart').popover({
+        html: true,
+        trigger: 'manual',
+        container: 'body'
+      });
+      popcart.setAttribute('data-bs-content', '<h5>Cart Items</h5>');
+    }
+  });
+</script>
+{% endblock %}

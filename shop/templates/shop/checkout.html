@@ -1,0 +1,206 @@
+{% extends 'shop/basic.html' %}
+
+{% block title %} Checkout {% endblock %}
+
+{% block body %} 
+
+<div class="container">
+   <div class="col my-3">
+    <h2> Step 1- Review Order </h2>
+    <ul class="cart-items list-group mb-3" aria-label="Items in your order"></ul>
+    <div class=" justify-content-between align-items-center border-top pt-2">
+      <span class="fw-semibold">You have to pay this amount:</span>
+      <span id="total-amount" class="fw-bold">₹{{ amount }}</span>
+    </div>
+<div class="col my-3">
+    <h2> Step 2- Shipping Information: </h2>
+    <div id="items">
+  <form class="row g-3 needs-validation" novalidate method="post" action="/shop/checkout/"> {% csrf_token %}
+  <input type="hidden" name="itemsJson" id="itemsJson">
+  <input type="hidden" name="amount" id="amount" value="{{ amount }}">
+  <div class="col-md-4">
+    <label for="validationCustom01" class="form-label"> Name </label>
+    <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
+    <div class="valid-feedback">
+      Looks good!
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <label for="validationCustomerEmail" class="form-label">Email</label>
+    <div class="input-group has-validation">
+      <span class="input-group-text" id="inputGroupPrepend">@</span>
+      <input type="email" class="form-control" id="email" name="email" aria-describedby="inputGroupPrepend" required>
+      <div class="invalid-feedback">
+        Please choose a valid email.
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <label for="validationCustomAddress" class="form-label">Address</label>
+    <input type="text" class="form-control" id="validationCustomAddress" name="address1" required>
+    <div class="invalid-feedback">
+      Please provide a valid address.
+    </div>
+  </div>
+  <div class="w-100"></div>
+  <div class="col-md-3">
+    <label for="validationCustomAddress2" class="form-label">Address 2</label>
+    <input type="text" class="form-control" id="validationCustomAddress2" name="address2">
+  </div>
+ <div class="w-100"></div>
+  <div class="col-md-3">
+    <label for="validationCustom03" class="form-label">City</label>
+    <input type="text" class="form-control" id="validationCustom03" name="city" required>
+    <div class="invalid-feedback">
+      Please provide a valid city.
+    </div>
+  </div>
+  <div class="col-md-3">
+    <label for="validationCustom04" class="form-label">State</label>
+    <input type="text" class="form-control" id="validationCustom04" name="state" required>
+    <div class="invalid-feedback">
+      Please provide a valid state.
+    </div>
+  </div>
+  <div class="col-md-3">
+    <label for="validationCustom05" class="form-label">Zip Code</label>
+    <input type="text" class="form-control" id="validationCustom05" name="zip_code" required>
+    <div class="invalid-feedback">
+      Please provide a valid zip code.
+    </div>
+  </div>
+  <div class="col-md-3">
+    <label for="validationCustom06" class="form-label">Phone Number</label>
+    <input type="tel" class="form-control" id="validationCustom06" name="phone" required>
+    <div class="invalid-feedback">
+      Please provide a valid phone number.
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+      <label class="form-check-label" for="invalidCheck">
+        Agree to terms and conditions
+      </label>
+      <div class="invalid-feedback">
+        You must agree before submitting.
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit">Place Order</button>
+  </div>
+</form>
+    </div>
+</div>
+</div> 
+{% endblock %}
+
+{% block js %}
+<script>
+    var cart = {};
+
+    if (localStorage.getItem('cart')) {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        
+    }
+    var cartItems = document.querySelector('.cart-items');
+    var totalAmount = 0;
+    var itemNumber = 1;
+
+for (var item in cart) {
+    var name = cart[item][1];
+    var qty = Number(cart[item][0]);
+    var price = Number(cart[item][2] || 0);
+    var subtotal = qty * price;
+
+    totalAmount += subtotal;
+
+    var mystr = `
+      <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
+        <div class="min-w-0">
+          <div class="fw-semibold"><span class="text-body-secondary me-2">${itemNumber}.</span>${name}</div>
+          <small class="text-body-secondary">${qty} × ₹${price}</small>
+        </div>
+        <span class="fw-semibold text-nowrap">₹${subtotal}</span>
+        </li>`;
+
+    cartItems.insertAdjacentHTML('beforeend', mystr);
+    itemNumber++;
+}
+
+document.getElementById('total-amount').textContent =
+    '₹' + totalAmount;
+
+    
+
+    function updateNavbarCart() {
+      var cartCount = document.getElementById('cart');
+      var popcart = document.getElementById('popcart');
+      var total = 0;
+      var content = "<h5>Cart Items</h5><div class='card-body mx-2 my-2'>";
+      var itemNumber = 1;
+
+      for (var item in cart) {
+        total += cart[item][0];
+        content += "<b>" + itemNumber + "</b>. " + cart[item][1] +
+          " Qty: " + cart[item][0] + "<br>";
+        itemNumber++;
+      }
+
+      if (total === 0) {
+        content += "Your cart is empty.";
+      }
+
+      content += "<div class='mt-3'><a href='/shop/checkout/' class='btn btn-primary btn-sm'>Checkout</a> " +
+        "<button type='button' class='btn btn-danger btn-sm clear-cart-btn'>Clear Cart</button></div></div>";
+
+      if (cartCount) {
+        cartCount.innerText = total;
+      }
+
+      if (popcart) {
+        popcart.setAttribute('data-bs-content', content);
+        var popover = bootstrap.Popover.getInstance(popcart);
+        if (popover) {
+          popover.setContent({ '.popover-body': content });
+        }
+      }
+    }
+
+    var popcart = document.getElementById('popcart');
+    if (popcart) {
+      var allowList = bootstrap.Popover.Default.allowList;
+      allowList.button = ['type', 'class', 'id'];
+      new bootstrap.Popover(popcart, {
+        html: true,
+        trigger: 'click',
+        container: 'body',
+        allowList: allowList
+      });
+    }
+
+    document.addEventListener('click', function(event) {
+      if (!event.target.classList.contains('clear-cart-btn')) return;
+
+      cart = {};
+      localStorage.removeItem('cart');
+      updateNavbarCart();
+      cartItems.innerHTML = "<li class='list-group-item'>Your cart is empty.</li>";
+    });
+
+
+    if (Object.keys(cart).length === 0) {
+        cartItems.innerHTML =
+            "<li class='list-group-item'>Your cart is empty.</li>";
+    }
+    
+
+    updateNavbarCart();
+    $('#itemsJson').val(JSON.stringify(cart));
+    document.getElementById('amount').value = totalAmount;
+
+</script>   
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends 'shop/basic.html' %}
+{% load static %}
+
+{% block css %}
+.col-md-3 {
+display: inline-block;
+margin-left: -4px;
+}
+
+.col-md-3 {
+width: 100%;
+height: auto;
+}
+
+body .no-padding {
+padding-left: 0;
+padding-right: 0;
+}
+
+.carousel-control-prev-icon {
+
+background: black no-repeat center center;
+background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3e%3cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3e%3c/svg%3e");
+}
+
+.carousel-control-next-icon {
+background: black no-repeat center center;
+background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 8 8'%3e%3cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3e%3c/svg%3e");
+
+}
+body .carousel-indicators{
+bottom:0;
+}
+
+.carousel-indicators .active{
+background-color: blue;
+}
+.card-img-top {
+width: 100%;
+height: 250px; /* adjust if you want bigger */
+object-fit: contain;
+padding: 10px;
+}
+
+.carousel-item .card {
+width: 100% !important;
+height: 480px;
+}
+
+.carousel-item .card-body {
+display: flex;
+flex-direction: column;
+}
+
+.carousel-item .card-title {
+min-height: 48px;
+}
+
+.carousel-item .description {
+min-height: 48px;
+}
+
+.carousel-item .price {
+min-height: 24px;
+}
+
+.carousel-item .card-actions {
+display: flex;
+gap: 0.5rem;
+margin-top: auto;
+}
+
+.carousel-item .card-actions > * {
+flex: 0 0 auto;
+}
+
+.carousel-inner,
+.carousel-item {
+height: 480px;
+}
+
+.carousel-control-prev {
+left: -120px; /* move left arrow outward */
+}
+
+.carousel-control-next {
+right: -110px; /* move right arrow outward */
+}
+
+{% endblock %}
+</head>
+
+{% block body %}
+
+<div class="container">
+
+  {% if query and not all_prods %}
+  <p class="alert alert-secondary mt-3" role="status">No results found for "{{ query }}".</p>
+  {% endif %}
+
+  {% for products, range, n_slides in all_prods%}
+  <h1>{{products.0.category}}</h1>
+  <div class="row">
+    <div id="demo{{forloop.counter}}" class="col carousel slide my-3">
+
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#demo{{forloop.counter}}" data-bs-slide-to="0" class="active"></button>
+        {% for i in range %}
+
+        <button type="button" data-bs-target="#demo{{forloop.parentloop.counter}}" data-bs-slide-to="{{i}}"></button>
+        {% endfor %}
+
+      </div>
+
+      <!--Slideshow starts here-->
+
+      <div class="carousel-inner">
+
+        {% for product in products %}
+        {% if forloop.first %}
+        <div class="carousel-item active">
+          <div class="row">
+            {% elif forloop.counter0|divisibleby:4 %}
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="row">
+            {% endif %}
+
+            <div class="col-3">
+              <div class="card align-items-center" style="width: 18rem;">
+                <img src="{{product.image.url}}" class="card-img-top">
+                <div class="card-body">
+                  <h5 class="card-title" id="product_fetchpr{{product.id}}">{{ product.product_name }}</h5>
+                  <p class="card-text description">{{ product.desc|slice:":50" }}...</p>
+                  <p class="card-text price">Price: ₹{{ product.price }}</p>
+                  <div class="card-actions">
+                    <span id="divpr{{product.id}}">
+                    <button type="button" id="pr{{ product.id }}" data-price="{{product.price}}" class="btn btn-primary cart" >Add To Cart</button>
+                    </span>
+                    <a href="/shop/products/{{ product.id }}/"><button type="button" id="qv{{ product.id }}"
+                        class="btn btn-primary quick-view">Quick View</button></a>
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% if forloop.last %}
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+      </div>
+
+      <!--left and right controls for slide-->
+      <button class="carousel-control-prev" type="button" data-bs-target="#demo{{forloop.counter}}"
+        data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+
+      <button class="carousel-control-next" type="button" data-bs-target="#demo{{forloop.counter}}"
+        data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+
+    </div>
+
+  </div>
+  {% endfor %}
+  {% endblock %}
+
+  {%block js %}
+  <script>
+    var cart = {};
+    
+    // Check if cart exists in localStorage and load it
+    if (localStorage.getItem('cart') !== null) {
+      cart = JSON.parse(localStorage.getItem('cart'));
+    }
+    var cartCount = document.getElementById('cart');
+    if (cartCount) {
+        cartCount.innerHTML = Object.values(cart)
+          .reduce((total, item) => total + item[0], 0);
+      }
+    // if the add to cart button is clicked, add the product to the cart and update the cart count
+   $(document).on('click', '.cart', function(e) {
+    e.preventDefault();
+
+    var idstr = this.id.toString();
+
+    // Get the product ID from pr123
+    var productId = idstr.replace('pr', '');
+
+    // Get product name
+    var productNameElement = document.getElementById('product_fetchpr' + productId);
+    var productName = productNameElement ? productNameElement.innerText : "Item";
+    var productPrice = Number(this.dataset.price);
+
+    if (cart[idstr] != undefined) {
+        cart[idstr][0] = cart[idstr][0] + 1;
+        cart[idstr][2] = productPrice; // Update price if needed
+    } else {
+        cart[idstr] = [1, productName, productPrice];
+    }
+
+    updateCart(cart);
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    if (cartCount) {
+        cartCount.innerHTML = Object.values(cart)
+            .reduce((total, item) => total + item[0], 0);
+    }
+});
+    $(document).on('click', '.minus, .plus', function(e) {
+    e.preventDefault();
+
+    var idstr = this.id.replace('minus', '').replace('plus', '');
+    var change = this.classList.contains('plus') ? 1 : -1;
+
+    if (cart[idstr] != undefined) {
+        cart[idstr][0] = cart[idstr][0] + change;
+
+        if (cart[idstr][0] <= 0) {
+            delete cart[idstr];
+
+            var div = document.getElementById('div' + idstr);
+            if (div) {
+                div.innerHTML =
+                    "<button type='button' id='" + idstr +
+                    "' class='btn btn-primary cart'>Add To Cart</button>";
+            }
+        } else {
+            updateCart(cart);
+        }
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    if (cartCount) {
+        cartCount.innerHTML = Object.values(cart)
+            .reduce((total, item) => total + item[0], 0);
+    }
+});
+    $(document).ready(function() {
+      var popcart = document.getElementById('popcart');
+      if (popcart) {
+      var myAllowList = bootstrap.Popover.Default.allowList;
+      myAllowList.button = ['type', 'class', 'id']; // no onclick needed if you delegate
+
+      new bootstrap.Popover(popcart, {
+       html: true,
+       trigger: 'click',
+       container: 'body',
+       allowList: myAllowList
+      });
+      }
+      updateCart(cart);
+    });
+
+    document.addEventListener('click', function(event) {
+      var clearButton = event.target.closest('.clear-cart-btn');
+      if (clearButton) {
+        clearCart();
+      }
+    });
+
+    function updateCart(cart){
+      for (var item in cart){
+        var itemContainer = document.getElementById('div'+item);
+        if (itemContainer) {
+          itemContainer.innerHTML = "<button type='button' id='minus"+item+"' class='btn btn-primary minus'>-</button> <span id='val"+item+"'>"+cart[item][0]+"</span> <button type='button' id='plus"+item+"' class='btn btn-primary plus'>+</button>";
+        }
+      }
+      updatePopoverContent(cart);
+    }
+
+    function clearCart() {
+    cart = JSON.parse(localStorage.getItem('cart')) || {};
+
+    for (var item in cart) {
+        var div = document.getElementById('div' + item);
+
+        if (div) {
+            div.innerHTML =
+                "<button type='button' id='" + item +
+                "' class='btn btn-primary cart'>Add To Cart</button>";
+        }
+    }
+
+    localStorage.removeItem('cart');
+    cart = {};
+
+    updateCart(cart);
+}
+    function updatePopoverContent(cart) {
+      var popcart = document.getElementById('popcart');
+      if (!popcart) return;
+
+      var content = "<h5>Cart Items</h5><div class='card-body mx-2 my-2'>";
+      var i = 1;
+      for (var item in cart) {
+        var productName = document.getElementById('product_fetch' + item);
+
+        if (productName) {
+          content += "<b>" + i + "</b>. " + productName.innerHTML.slice(0, 19) + " Qty: " + cart[item][0] + "<br>";
+          i++;
+        }
+      }
+      
+      // Moved the buttons INSIDE the card-body div block
+      content += "<div class='mt-3'>" +
+      "<a href='/shop/checkout/' class='btn btn-primary btn-sm' id='checkout'>Checkout</a> " +
+      "<button type='button' class='btn btn-danger btn-sm clear-cart-btn'>Clear Cart</button>" +
+      "</div></div>";      
+      popcart.setAttribute('data-bs-content', content);
+   
+
+      var popoverInstance = bootstrap.Popover.getInstance(popcart);
+      if (popoverInstance) {
+        popoverInstance.setContent({ '.popover-body': content });
+      }
+    }
+  </script>
+
+  {% endblock %}
