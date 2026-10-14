@@ -27,6 +27,9 @@ if not SECRET_KEY:
     raise ImproperlyConfigured('Set the DJANGO_SECRET_KEY environment variable.')
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'false').lower() in ('true', '1', 'yes')
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+if not DEBUG and not CLOUDINARY_URL:
+    raise ImproperlyConfigured('Set the CLOUDINARY_URL environment variable for production media storage.')
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -56,6 +59,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -151,7 +156,11 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': (
+            'cloudinary_storage.storage.MediaCloudinaryStorage'
+            if CLOUDINARY_URL
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',

@@ -141,10 +141,12 @@ The repository includes a Render Blueprint in `render.yaml`. To create a demo de
 
 The Blueprint generates `DJANGO_SECRET_KEY`, configures PostgreSQL, runs migrations and collects static files during build, and starts the app with Gunicorn. Render sets the public hostname automatically.
 
-This is for demonstration and testing only. Render's free web service can spin down when idle, and its free PostgreSQL database expires after 30 days. The app's uploaded product images are stored on the web service's temporary filesystem and can be lost on restart or redeploy. Do not use this configuration for real orders or important data. For production, use a persistent paid database and external persistent media storage, and confirm backups and retention.
+Before deploying, create a Cloudinary account and add its `CLOUDINARY_URL` value to the web service's environment in the Render Dashboard. The setting is intentionally not stored in this repository. Production startup requires it, and product images uploaded through Django admin will then be stored in Cloudinary rather than the web service's temporary filesystem. If you already uploaded images before configuring Cloudinary, upload those images again through the admin after deployment; their database records do not contain the image files.
+
+This is for demonstration and testing only. Render's free web service can spin down when idle, and its free PostgreSQL database expires after 30 days. Do not use this configuration for real orders or important data. For production, use a persistent paid database and confirm backups and retention.
 
 ## Notes
 
-- Media uploads are stored under the `media/` directory.
+- Local media uploads are stored under the `media/` directory. Production media uploads use Cloudinary when `CLOUDINARY_URL` is configured.
 - The project uses SQLite locally; Render uses PostgreSQL through `DATABASE_URL`.
 - Local database files, uploads, virtual environments, and secrets are excluded via `.gitignore`.
