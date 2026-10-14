@@ -13,6 +13,13 @@ MyCart is a Django-based shopping project with a storefront, cart flow, checkout
 - PDF invoice generation for each order
 - Contact form for customer inquiries
 
+### Tracking an order
+
+After placing an order, the confirmation page displays its Order ID and provides a
+link to the tracker with that ID prefilled. To check the order's status, submit
+the ID together with the email address used at checkout. Keep the Order ID for
+later; it is also shown on the order confirmation.
+
 ## Tech Stack
 
 - Python

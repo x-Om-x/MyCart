@@ -6,7 +6,13 @@
 <main class="container my-5">
   <div class="mx-auto" style="max-width: 680px;">
     <h1 class="h2">Order placed</h1>
-    <p class="text-body-secondary">Order #{{ order.order_id }} has been recorded.</p>
+    <p class="text-body-secondary">Your order has been recorded. Save this ID to check its status later.</p>
+
+    <div class="alert alert-success" role="status">
+      <div class="small text-uppercase fw-semibold">Your Order ID</div>
+      <div class="fs-3 fw-bold">#{{ order.order_id }}</div>
+      <div class="small">You’ll also need the email address you used at checkout to track this order.</div>
+    </div>
 
     <dl class="row border-top border-bottom py-3">
       <dt class="col-sm-5">Order total</dt>
@@ -17,6 +23,7 @@
       <dd class="col-sm-7">Manual/offline payment</dd>
     </dl>
 
+    <a class="btn btn-success mb-2" href="{% url 'Tracker' %}?order_id={{ order.order_id }}">Track this order</a>
     <a class="btn btn-primary" href="{% url 'OrderInvoice' pdf_token %}">Download payment invoice (PDF)</a>
     <a class="btn btn-outline-secondary ms-2" href="{% url 'ShopHome' %}">Continue shopping</a>
   </div>

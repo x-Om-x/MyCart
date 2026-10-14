@@ -16,7 +16,8 @@
 
           <div class="col-md-5">
             <label for="order_id" class="form-label">Order ID</label>
-            <input type="text" class="form-control form-control-lg" id="order_id" name="order_id" required>
+            <input type="text" class="form-control form-control-lg" id="order_id" name="order_id"
+              value="{{ request.GET.order_id }}" required>
             <div class="valid-feedback">Looks good!</div>
           </div>
 

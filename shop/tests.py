@@ -33,10 +33,21 @@ class OrderInvoiceTests(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		order = Order.objects.get()
+		self.assertContains(response, f'#{order.order_id}')
+		self.assertContains(
+			response,
+			f'href="{reverse("Tracker")}?order_id={order.order_id}"',
+		)
 		self.assertEqual(order.amount, 500)
 		self.assertEqual(
 			json.loads(order.items_json),
 			{f'pr{self.product.pk}': [2, 'Test product', 250]},
+		)
+
+		tracker = self.client.get(reverse('Tracker'), {'order_id': order.order_id})
+		self.assertContains(
+			tracker,
+			f'value="{order.order_id}"',
 		)
 
 		invoice = self.client.get(reverse('OrderInvoice', args=[response.context['pdf_token']]))
